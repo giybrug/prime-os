@@ -1,0 +1,2119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRIME OS // Cloud Sync Edition</title>
+    <style>
+        :root {
+            --bg-body: #09090b;
+            --bg-surface: #121215;
+            --bg-elevated: #18181c;
+            --bg-hover: #222228;
+            --border: #27272a;
+            --border-focus: #3f3f46;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #3b82f6;
+            --accent-soft: rgba(59, 130, 246, 0.12);
+            --green: #10b981;
+            --green-soft: rgba(16, 185, 129, 0.14);
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --purple: #8b5cf6;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 24px 20px 60px;
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        /* Top Bar & Navigation */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: var(--text-primary);
+            color: var(--bg-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        .brand h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .sync-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sync-badge.ok {
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .sync-badge.syncing {
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #60a5fa;
+        }
+
+        .sync-badge.err {
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: var(--bg-surface);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            gap: 4px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 7px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        .top-kpis {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .kpi-item {
+            text-align: right;
+        }
+
+        .kpi-val {
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .kpi-lbl {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Layout Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 880px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .card-cloud {
+            border-color: rgba(59, 130, 246, 0.45);
+            background: linear-gradient(145deg, #121215 0%, #111827 100%);
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .card-title {
+            font-size: 0.96rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtext {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+        }
+
+        /* Date Bar */
+        .date-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .date-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        input[type="date"], input[type="text"], input[type="password"], input[type="number"], select {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 11px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+        }
+
+        .btn {
+            background: var(--text-primary);
+            color: var(--bg-body);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-ghost {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: #052e16;
+        }
+
+        .btn-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Progress Bar */
+        .prog-wrap {
+            margin-bottom: 16px;
+        }
+
+        .prog-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .prog-track {
+            height: 6px;
+            width: 100%;
+            background: var(--bg-body);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .prog-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--green);
+            transition: width 0.25s ease;
+        }
+
+        /* Task / Habit List */
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--bg-elevated);
+            border: 1px solid transparent;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+            gap: 10px;
+        }
+
+        .item-row:hover {
+            border-color: var(--border-focus);
+        }
+
+        .item-row.done {
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.22);
+        }
+
+        .item-row.done .item-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chk {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 1.5px solid var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.75rem;
+        }
+
+        .item-row.done .chk {
+            background: var(--green);
+            border-color: var(--green);
+            color: #052e16;
+            font-weight: 900;
+        }
+
+        .item-title {
+            font-size: 0.88rem;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .item-sub {
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .item-tag {
+            font-size: 0.68rem;
+            padding: 2px 7px;
+            border-radius: 5px;
+            background: var(--bg-body);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .icon-btn:hover {
+            color: var(--red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .add-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Stopwatch & Time Log */
+        .timer-panel {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .timer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stopwatch-digits {
+            font-size: 2.1rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .stopwatch-digits.running {
+            color: var(--accent);
+        }
+
+        .time-edit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        /* Counters Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 10px;
+        }
+
+        .metric-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .metric-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .metric-name {
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .metric-val {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .step-btn {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .step-btn:hover {
+            border-color: var(--text-secondary);
+        }
+
+        /* Heatmap & Analytics View */
+        .stats-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 720px) {
+            .stats-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+
+        .stat-box .big {
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .stat-box .lbl {
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+        }
+
+        /* Year Heatmap (GitHub Style) */
+        .heatmap-scroll {
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .heatmap-months {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            min-width: 720px;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-rows: repeat(7, 13px);
+            grid-auto-flow: column;
+            grid-auto-columns: 13px;
+            gap: 4px;
+            min-width: 720px;
+        }
+
+        .hm-cell {
+            width: 13px;
+            height: 13px;
+            border-radius: 3px;
+            background: #18181c;
+            border: 1px solid rgba(255,255,255,0.03);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .hm-cell:hover {
+            outline: 1.5px solid var(--text-primary);
+        }
+
+        .hm-l0 { background: #16161a; }
+        .hm-l1 { background: #064e3b; }
+        .hm-l2 { background: #047857; }
+        .hm-l3 { background: #10b981; }
+        .hm-l4 { background: #34d399; box-shadow: 0 0 6px rgba(52, 211, 153, 0.35); }
+
+        .hm-legend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Monthly Calendar in Stats */
+        .month-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .m-cell {
+            padding: 10px 6px;
+            border-radius: 8px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .m-cell:hover {
+            border-color: var(--accent);
+        }
+
+        .m-cell.active-day {
+            outline: 2px solid var(--accent);
+        }
+
+        /* SOS Banner */
+        .sos-banner {
+            display: none;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.82rem;
+        }
+
+        .sos-banner.show {
+            display: block;
+        }
+
+        .cloud-status-box {
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+            margin-top: 10px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ВЕРХНЯЯ ПАНЕЛЬ И НАВИГАЦИЯ -->
+<div class="topbar">
+    <div class="brand">
+        <div class="brand-logo">P</div>
+        <div>
+            <h1>
+                PRIME OS
+                <span id="cloud-indicator" class="sync-badge" onclick="switchTab('settings', document.querySelectorAll('.tab-btn')[2])" title="Нажми для настройки облачной синхронизации">☁️ Локально (Настроить облако)</span>
+            </h1>
+            <span>Личная система дисциплины и учета времени</span>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('today', this)">Сегодня</button>
+        <button class="tab-btn" onclick="switchTab('stats', this)">Статистика (Все время)</button>
+        <button class="tab-btn" onclick="switchTab('settings', this)">Настройки & Облако ☁️</button>
+    </div>
+
+    <div class="top-kpis">
+        <div class="kpi-item">
+            <span class="kpi-val" id="top-clean-streak" style="color: var(--green);">0 🛡️</span>
+            <span class="kpi-lbl">Чистых дней</span>
+        </div>
+        <div class="kpi-item">
+            <span class="kpi-val" id="top-active-streak">0 🔥</span>
+            <span class="kpi-lbl">Стрик режима</span>
+        </div>
+        <div class="kpi-item">
+            <span class="kpi-val" id="top-total-hours" style="color: var(--accent);">0 ч</span>
+            <span class="kpi-lbl">Всего фокуса</span>
+        </div>
+    </div>
+</div>
+
+<!-- ================= ВКЛАДКА 1: СЕГОДНЯ ================= -->
+<div id="view-today" class="view-section active">
+    <div class="date-bar">
+        <div class="date-controls">
+            <button class="btn btn-ghost" onclick="shiftDate(-1)">←</button>
+            <input type="date" id="active-date-input">
+            <button class="btn btn-ghost" onclick="shiftDate(1)">→</button>
+            <button class="btn btn-ghost" onclick="goToToday()">Сегодня</button>
+            <button class="btn btn-ghost" id="quick-pull-btn" style="display:none;" onclick="pullFromCloud(true)" title="Подтянуть свежие данные из облака">🔄 Обновить из облака</button>
+        </div>
+        <div style="font-size: 0.84rem; color: var(--text-secondary);">
+            Выполнено за день: <strong id="day-pct-badge" style="color: var(--text-primary);">0%</strong>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <!-- Левая колонка: Секундомер, Привычки, Задачи дня -->
+        <div class="col">
+            <!-- 1. Живой секундомер и учет времени -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">⏱ Секундомер фокуса (Немецкий и Учеба)</div>
+                    <select id="timer-subject-select" onchange="onSubjectChange()" style="padding: 5px 10px; font-size: 0.8rem;"></select>
+                </div>
+
+                <div class="timer-panel">
+                    <div class="timer-top">
+                        <div>
+                            <div style="font-size: 0.74rem; color: var(--text-muted);" id="timer-status-lbl">Секундомер остановлен • Все время идет в зачет дня</div>
+                            <div class="stopwatch-digits" id="stopwatch-display">00:00:00</div>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="btn btn-accent" id="sw-toggle-btn" onclick="toggleStopwatch()">▶ Старт</button>
+                            <button class="btn btn-green" id="sw-save-btn" onclick="commitStopwatchSession()" title="Прибавить натикавшее время к сегодняшнему дню">✓ Засчитать в день</button>
+                            <button class="btn btn-ghost" onclick="resetStopwatch()" title="Сбросить секундомер без сохранения">Сброс</button>
+                        </div>
+                    </div>
+
+                    <!-- Ручное редактирование времени за день (если забыл выключить таймер) -->
+                    <div class="time-edit-row">
+                        <div style="font-size: 0.82rem; color: var(--text-secondary);">
+                            Засчитано сегодня по предмету: <strong id="logged-time-Readout" style="color: var(--text-primary);">0 мин (0.0 ч)</strong>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Исправить (мин):</span>
+                            <input type="number" id="manual-minutes-input" min="0" max="1440" style="width: 78px; padding: 5px 8px;" placeholder="Мин">
+                            <button class="btn btn-ghost" style="padding: 5px 10px; font-size: 0.78rem;" onclick="applyManualMinutes()">Сохранить</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Сводка по всем предметам за выбранный день -->
+                <div id="daily-subjects-summary" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+            </div>
+
+            <!-- 2. Задачи на выбранный день (To-Do) -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">🎯 Задачи на выбранный день</div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);" id="todo-counter">0 / 0</span>
+                </div>
+                <div class="list" id="daily-todo-list"></div>
+                <div class="add-row">
+                    <input type="text" id="new-todo-input" style="flex:1;" placeholder="Добавить задачу на этот день..." onkeypress="if(event.key==='Enter') addDailyTodo()">
+                    <button class="btn" onclick="addDailyTodo()">+ Добавить</button>
+                </div>
+            </div>
+
+            <!-- 3. Постоянные привычки (Ежедневная база) -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">⚡ Постоянные привычки</div>
+                    <button class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.75rem;" onclick="switchTab('settings', document.querySelectorAll('.tab-btn')[2])">⚙ Изменить список</button>
+                </div>
+
+                <div class="prog-wrap">
+                    <div class="prog-head">
+                        <span>Выполнение дневного чек-листа</span>
+                        <span id="habits-prog-text">0 / 0</span>
+                    </div>
+                    <div class="prog-track">
+                        <div class="prog-fill" id="habits-prog-fill"></div>
+                    </div>
+                </div>
+
+                <div class="list" id="daily-habits-list"></div>
+
+                <div class="add-row">
+                    <input type="text" id="quick-habit-input" style="flex:1;" placeholder="Новая постоянная привычка (на каждый день)..." onkeypress="if(event.key==='Enter') quickAddHabit('positive')">
+                    <button class="btn btn-ghost" onclick="quickAddHabit('positive')">+ В привычки</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая колонка: Дофаминовый щит, Счетчики, Парковка мыслей -->
+        <div class="col">
+            <!-- 4. Дофаминовый щит (Анти-привычки и контроль триггеров) -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">🛡️ Самоконтроль и Анти-привычки</div>
+                    <button class="btn btn-red" style="padding: 5px 10px; font-size: 0.75rem;" onclick="toggleSosBanner()">🚨 SOS Триггер</button>
+                </div>
+                <p class="subtext">Отмечай пункты, которые удалось удержать под контролем за этот день:</p>
+
+                <div class="list" id="daily-anti-list"></div>
+
+                <div class="add-row">
+                    <input type="text" id="quick-anti-input" style="flex:1;" placeholder="Добавить анти-привычку / ограничение..." onkeypress="if(event.key==='Enter') quickAddHabit('anti')">
+                    <button class="btn btn-ghost" onclick="quickAddHabit('anti')">+ Добавить</button>
+                </div>
+
+                <div class="sos-banner" id="sos-banner">
+                    <strong style="color: #f87171; display:block; margin-bottom:6px;">Экстренный перехват импульса:</strong>
+                    1. Сразу положи телефон на стол и встань на ноги.<br>
+                    2. Сделай 25 отжиманий от пола и умойся холодной водой.<br>
+                    3. Не обнуляй свой дофамин и завтрашнюю энергию ради 5 минут слабости.
+                    <div style="margin-top:10px; display:flex; gap:8px;">
+                        <button class="btn btn-green" style="padding:5px 10px; font-size:0.76rem;" onclick="completeSosPushups()">Сделал +25 отжиманий</button>
+                        <button class="btn btn-ghost" style="padding:5px 10px; font-size:0.76rem;" onclick="toggleSosBanner()">Скрыть</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Количественные счетчики дня -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">📈 Дневные показатели (Счетчики)</div>
+                    <button class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.75rem;" onclick="switchTab('settings', document.querySelectorAll('.tab-btn')[2])">+ Настроить</button>
+                </div>
+                <div class="metrics-grid" id="daily-metrics-grid"></div>
+            </div>
+
+            <!-- 6. Долгосрочные ориентиры / Дедлайны -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">🧭 Ключевые цели и дедлайны</div>
+                    <button class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.75rem;" onclick="switchTab('settings', document.querySelectorAll('.tab-btn')[2])">Редактировать</button>
+                </div>
+                <div class="list" id="milestones-compact-list"></div>
+            </div>
+
+            <!-- 7. Парковка мыслей -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">📌 Заметки / Парковка мыслей</div>
+                </div>
+                <div class="list" id="parking-list"></div>
+                <div class="add-row">
+                    <input type="text" id="parking-input" style="flex:1;" placeholder="Быстрая заметка или мысль во время учебы..." onkeypress="if(event.key==='Enter') addParking()">
+                    <button class="btn btn-ghost" onclick="addParking()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= ВКЛАДКА 2: СТАТИСТИКА ЗА ВСЕ ВРЕМЯ ================= -->
+<div id="view-stats" class="view-section">
+    <div class="stats-summary-grid">
+        <div class="stat-box">
+            <span class="lbl">Всего закрыто задач и привычек</span>
+            <span class="big" id="st-total-completed">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="lbl">Суммарное время фокуса</span>
+            <span class="big" id="st-total-hours" style="color: var(--accent);">0.0 ч</span>
+        </div>
+        <div class="stat-box">
+            <span class="lbl">Всего чистых дней (Без срывов)</span>
+            <span class="big" id="st-total-clean" style="color: var(--green);">0 дн.</span>
+        </div>
+        <div class="stat-box">
+            <span class="lbl">Прайм-дней (выполнение ≥ 80%)</span>
+            <span class="big" id="st-prime-days">0 дн.</span>
+        </div>
+    </div>
+
+    <!-- Карта активности за 365 дней (как на GitHub) -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="card-head">
+            <div>
+                <div class="card-title">🟩 Карта дисциплины за год (365 дней)</div>
+                <span style="font-size: 0.78rem; color: var(--text-secondary);">Каждая ячейка — один день. Чем ярче цвет, тем больше задач и привычек выполнено. Кликни на ячейку, чтобы перейти к дате.</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <select id="heatmap-year-select" onchange="renderYearHeatmap()" style="padding: 5px 10px;"></select>
+            </div>
+        </div>
+
+        <div class="heatmap-scroll">
+            <div class="heatmap-months">
+                <span>Янв</span><span>Фев</span><span>Мар</span><span>Апр</span><span>Май</span><span>Июн</span>
+                <span>Июл</span><span>Авг</span><span>Сен</span><span>Окт</span><span>Ноя</span><span>Дек</span>
+            </div>
+            <div class="heatmap-grid" id="year-heatmap-grid"></div>
+        </div>
+
+        <div class="hm-legend">
+            <span>Меньше</span>
+            <span class="hm-cell hm-l0"></span>
+            <span class="hm-cell hm-l1"></span>
+            <span class="hm-cell hm-l2"></span>
+            <span class="hm-cell hm-l3"></span>
+            <span class="hm-cell hm-l4"></span>
+            <span>Больше (85%+)</span>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <!-- Помесячный календарь -->
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">📅 Детализация по месяцам</div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button class="btn btn-ghost" style="padding:4px 8px;" onclick="shiftStatsMonth(-1)">←</button>
+                    <strong id="stats-month-title" style="font-size:0.86rem; min-width:115px; text-align:center;"></strong>
+                    <button class="btn btn-ghost" style="padding:4px 8px;" onclick="shiftStatsMonth(1)">→</button>
+                </div>
+            </div>
+            <div class="month-cal-grid" id="stats-month-grid"></div>
+        </div>
+
+        <!-- Разбивка часов по предметам за все время -->
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">📚 Накопленные часы по направлениям (Все время)</div>
+            </div>
+            <div class="list" id="alltime-subjects-breakdown"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= ВКЛАДКА 3: НАСТРОЙКИ И ОБЛАКО ================= -->
+<div id="view-settings" class="view-section">
+    <!-- БЛОК АВТОМАТИЧЕСКОЙ ОБЛАЧНОЙ СИНХРОНИЗАЦИИ (GITHUB GIST) -->
+    <div class="card card-cloud" style="margin-bottom: 20px;">
+        <div class="card-head">
+            <div class="card-title">☁️ Авто-синхронизация между телефоном и ноутбуком (GitHub Cloud)</div>
+            <span class="item-tag" style="border-color: var(--accent); color: #93c5fd;">Бесплатно • Без пересылки файлов</span>
+        </div>
+        <p class="subtext">
+            Подключи свой персональный токен GitHub (с галочкой <code>gist</code>). Приложение само создаст секретное облачное хранилище (Secret Gist) на твоем аккаунте. Любая галочка или минута таймера на телефоне автоматически появится на ноутбуке!
+        </p>
+
+        <div class="grid-2" style="gap: 14px;">
+            <div>
+                <label style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:4px;">1. Твой GitHub Personal Access Token (classic с правом "gist"):</label>
+                <input type="password" id="gh-token-input" style="width:100%;" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+            </div>
+            <div>
+                <label style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:4px;">2. ID облачной базы (Gist ID — заполнится сам или вставь со 2-го устройства):</label>
+                <input type="text" id="gh-gist-input" style="width:100%;" placeholder="Оставь пустым для создания новой базы, или вставь ID">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px;">
+            <button class="btn btn-accent" onclick="connectAndSyncCloud()">🔗 Подключить и синхронизировать</button>
+            <button class="btn btn-ghost" onclick="pullFromCloud(true)">⬇ Загрузить из облака</button>
+            <button class="btn btn-ghost" onclick="pushToCloud(true)">⬆ Отправить в облако</button>
+            <button class="btn btn-red" onclick="disconnectCloud()">Отключить облако</button>
+        </div>
+
+        <div class="cloud-status-box" id="cloud-status-msg">
+            Статус: Облако пока не подключено. Введи GitHub Token выше и нажми «Подключить».
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="col">
+            <!-- Управление постоянными привычками -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">⚡ Редактор постоянных привычек</div>
+                </div>
+                <p class="subtext">Добавляй свои привычки или удаляй неактуальные. Они будут отображаться каждый день.</p>
+                <div class="list" id="settings-habits-list"></div>
+                <div class="add-row">
+                    <select id="new-habit-type" style="max-width: 155px;">
+                        <option value="positive">Полезная привычка</option>
+                        <option value="anti">🛡️ Анти-привычка</option>
+                    </select>
+                    <input type="text" id="new-habit-title" style="flex:1;" placeholder="Название привычки...">
+                    <button class="btn" onclick="addHabitFromSettings()">+ Добавить</button>
+                </div>
+            </div>
+
+            <!-- Управление предметами таймера -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">⏱ Предметы и проекты для секундомера</div>
+                </div>
+                <p class="subtext">Ты можешь отслеживать время не только по немецкому, но и по любым будущим предметам в университете, кодингу или работе.</p>
+                <div class="list" id="settings-subjects-list"></div>
+                <div class="add-row">
+                    <input type="text" id="new-subject-name" style="flex:1;" placeholder="Например: Немецкий C1 / Python / Экономика...">
+                    <input type="number" id="new-subject-goal" style="width:120px;" placeholder="Цель (часов)">
+                    <button class="btn" onclick="addSubjectFromSettings()">+ Добавить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <!-- Управление количественными счетчиками -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">📈 Настройка дневных счетчиков</div>
+                </div>
+                <p class="subtext">Любые метрики, которые ты хочешь плюсовать в течение дня (отжимания, подтягивания, монологи, карточки Anki).</p>
+                <div class="list" id="settings-metrics-list"></div>
+                <div class="add-row">
+                    <input type="text" id="new-metric-name" style="flex:1;" placeholder="Название (напр. Карточки Anki)">
+                    <input type="number" id="new-metric-step" style="width:95px;" placeholder="Шаг (+5)" value="5">
+                    <button class="btn" onclick="addMetricFromSettings()">+ Добавить</button>
+                </div>
+            </div>
+
+            <!-- Управление дедлайнами и большими целями -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">🧭 Долгосрочные цели и дедлайны</div>
+                </div>
+                <p class="subtext">Добавляй экзамены или личные рубежи. Когда 7-месячный этап пройдет, просто обнови цели под 1-й курс университета.</p>
+                <div class="list" id="settings-milestones-list"></div>
+                <div class="add-row">
+                    <input type="text" id="new-ms-title" style="flex:1;" placeholder="Цель (напр. Экзамен EPE Английский)">
+                    <input type="date" id="new-ms-date">
+                    <button class="btn" onclick="addMilestoneFromSettings()">+ Добавить</button>
+                </div>
+            </div>
+
+            <!-- Резервный локальный экспорт -->
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">💾 Локальный бэкап (на всякий случай)</div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-ghost" onclick="exportBackup()">⬇ Скачать файл (.json)</button>
+                    <label class="btn btn-ghost" style="cursor:pointer;">
+                        ⬆ Загрузить из файла
+                        <input type="file" accept=".json" style="display:none;" onchange="importBackup(event)">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = "prime_os_v4_data";
+    const CLOUD_CFG_KEY = "prime_os_cloud_cfg";
+
+    const DEFAULT_STATE = {
+        updatedAt: 0,
+        subjects: [
+            { id: "sub_de", name: "🇩🇪 Немецкий (Курс + C1)", targetHours: 380 },
+            { id: "sub_epm", name: "📐 Математика (EPM)", targetHours: 80 },
+            { id: "sub_epe", name: "🇬🇧 Английский (EPE)", targetHours: 40 },
+            { id: "sub_other", name: "💻 Свои проекты / Учеба", targetHours: 100 }
+        ],
+        habits: [
+            { id: "h_de_block", title: "Глубокий фокус: Немецкий язык", type: "positive" },
+            { id: "h_de_speak", title: "Активный вывод: 5 мин речи вслух или эссе", type: "positive" },
+            { id: "h_second_sub", title: "Математика EPM / Английский EPE", type: "positive" },
+            { id: "h_third_place", title: "Выход из комнаты (Библиотека / Прогулка днем)", type: "positive" },
+            { id: "h_nutrition", title: "3 плотных домашних приема пищи + Калистеника", type: "positive" },
+            { id: "a_nofap_clean", title: "🛡️ День 100% чист (Без порно и самоудовлетворения)", type: "anti", isCoreClean: true },
+            { id: "a_morning_bed", title: "🚫 Утро: Встал сразу по будильнику (0 мин с телефоном в кровати)", type: "anti" },
+            { id: "a_day_scroll", title: "🚫 День: Без бесцельных рилсов наедине в комнате", type: "anti" },
+            { id: "a_night_bed", title: "🚫 Ночь: Телефон на столе до 23:30 (без экрана под одеялом)", type: "anti" }
+        ],
+        metrics: [
+            { id: "m_pushups", name: "Отжимания", step: 5 },
+            { id: "m_pullups", name: "Подтягивания", step: 1 },
+            { id: "m_squats", name: "Приседания / Пресс", step: 10 },
+            { id: "m_speaking", name: "Монологи 5м (Речь)", step: 1 }
+        ],
+        milestones: [
+            { id: "ms_epe", title: "🇬🇧 Экзамен EPE Английский (VWU 66€)", date: "2027-01-12", done: false },
+            { id: "ms_epm", title: "📐 Экзамен EPM Математика (VWU 66€)", date: "2027-03-02", done: false },
+            { id: "ms_uni", title: "🏛 Заявка на отбор Uni Wien (IBW)", date: "2027-04-01", done: false },
+            { id: "ms_epd", title: "🇩🇪 Экзамен EPD Немецкий C1", date: "2027-06-07", done: false }
+        ],
+        parking: [],
+        days: {}
+    };
+
+    let state = null;
+    let cloudCfg = { token: "", gistId: "" };
+    let syncTimeout = null;
+
+    let activeDate = getTodayISO();
+    let statsYear = new Date().getFullYear();
+    let statsMonth = new Date().getMonth();
+
+    // Stopwatch state
+    let swRunning = false;
+    let swStartTimestamp = null;
+    let swElapsedSeconds = 0;
+    let swInterval = null;
+
+    function getTodayISO() {
+        return formatISO(new Date());
+    }
+
+    function formatISO(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                state = JSON.parse(saved);
+            } catch (e) {
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            }
+        } else {
+            state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        }
+        if (!state.subjects || !state.subjects.length) state.subjects = DEFAULT_STATE.subjects;
+        if (!state.habits) state.habits = DEFAULT_STATE.habits;
+        if (!state.metrics) state.metrics = DEFAULT_STATE.metrics;
+        if (!state.milestones) state.milestones = DEFAULT_STATE.milestones;
+        if (!state.days) state.days = {};
+        if (!state.parking) state.parking = [];
+
+        const rawCfg = localStorage.getItem(CLOUD_CFG_KEY);
+        if (rawCfg) {
+            try { cloudCfg = JSON.parse(rawCfg); } catch (e) {}
+        }
+        document.getElementById('gh-token-input').value = cloudCfg.token || '';
+        document.getElementById('gh-gist-input').value = cloudCfg.gistId || '';
+        updateCloudBadgeUI();
+    }
+
+    function saveState(skipCloudPush = false) {
+        state.updatedAt = Date.now();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+
+        if (!skipCloudPush && cloudCfg.token && cloudCfg.gistId) {
+            setCloudBadge('syncing', '☁️ Сохранение...');
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(() => {
+                pushToCloud(false);
+            }, 900);
+        }
+    }
+
+    // ================= CLOUD SYNC (GITHUB GIST API) =================
+    function setCloudBadge(mode, text) {
+        const el = document.getElementById('cloud-indicator');
+        el.className = 'sync-badge ' + (mode || '');
+        el.textContent = text;
+        const pullBtn = document.getElementById('quick-pull-btn');
+        if (pullBtn) {
+            pullBtn.style.display = (cloudCfg.token && cloudCfg.gistId) ? 'inline-block' : 'none';
+        }
+    }
+
+    function updateCloudBadgeUI() {
+        if (cloudCfg.token && cloudCfg.gistId) {
+            setCloudBadge('ok', '☁️ Облако активно');
+            document.getElementById('cloud-status-msg').innerHTML = `✅ <strong>Облако подключено!</strong> Твой Gist ID: <code>${cloudCfg.gistId}</code> (скопируй этот ID и Token на второе устройство).`;
+        } else {
+            setCloudBadge('', '☁️ Локально (Настроить облако)');
+        }
+    }
+
+    async function connectAndSyncCloud() {
+        const token = document.getElementById('gh-token-input').value.trim();
+        let gistId = document.getElementById('gh-gist-input').value.trim();
+        const msgBox = document.getElementById('cloud-status-msg');
+
+        if (!token) {
+            msgBox.innerHTML = `<span style="color:var(--red);">❌ Введи GitHub Personal Access Token!</span>`;
+            return;
+        }
+
+        cloudCfg.token = token;
+        cloudCfg.gistId = gistId;
+        localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cloudCfg));
+        setCloudBadge('syncing', '☁️ Подключение...');
+
+        try {
+            if (!gistId) {
+                // Попробуем сначала найти существующий Gist с файлом prime_os_sync.json на аккаунте!
+                msgBox.textContent = "Поиск существующей базы на твоем GitHub...";
+                const listResp = await fetch("https://api.github.com/gists?per_page=50", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Accept": "application/vnd.github+json"
+                    }
+                });
+
+                if (!listResp.ok) throw new Error("Неверный токен или нет доступа к Gist");
+                const gists = await listResp.json();
+                const found = gists.find(g => g.files && g.files["prime_os_sync.json"]);
+
+                if (found) {
+                    cloudCfg.gistId = found.id;
+                    document.getElementById('gh-gist-input').value = found.id;
+                    localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cloudCfg));
+                    await pullFromCloud(true);
+                    return;
+                }
+
+                // Если еще нет — создаем новый Secret Gist
+                msgBox.textContent = "Создаем новую секретную базу в твоем GitHub Gist...";
+                const createResp = await fetch("https://api.github.com/gists", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Accept": "application/vnd.github+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        description: "PRIME OS Cloud Sync Database",
+                        public: false,
+                        files: {
+                            "prime_os_sync.json": {
+                                content: JSON.stringify(state, null, 2)
+                            }
+                        }
+                    })
+                });
+
+                if (!createResp.ok) throw new Error("Не удалось создать Gist (проверь галочку 'gist' у токена)");
+                const created = await createResp.json();
+                cloudCfg.gistId = created.id;
+                document.getElementById('gh-gist-input').value = created.id;
+                localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cloudCfg));
+                updateCloudBadgeUI();
+            } else {
+                // Если Gist ID уже введен — подтягиваем оттуда данные
+                await pullFromCloud(true);
+            }
+        } catch (err) {
+            setCloudBadge('err', '☁️ Ошибка облака');
+            msgBox.innerHTML = `<span style="color:var(--red);">❌ Ошибка: ${err.message}</span>`;
+        }
+    }
+
+    async function pullFromCloud(manualAlert = false) {
+        if (!cloudCfg.token || !cloudCfg.gistId) return;
+        const msgBox = document.getElementById('cloud-status-msg');
+        setCloudBadge('syncing', '☁️ Загрузка...');
+
+        try {
+            const resp = await fetch(`https://api.github.com/gists/${cloudCfg.gistId}`, {
+                cache: "no-store",
+                headers: {
+                    "Authorization": `Bearer ${cloudCfg.token}`,
+                    "Accept": "application/vnd.github+json"
+                }
+            });
+            if (!resp.ok) throw new Error("Не удалось прочитать Gist");
+            const data = await resp.json();
+            const fileObj = data.files && data.files["prime_os_sync.json"];
+            if (fileObj && fileObj.content) {
+                const remoteState = JSON.parse(fileObj.content);
+                // Обновляем локальный стейт данными из облака
+                if (remoteState && remoteState.days) {
+                    state = remoteState;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                    renderAll();
+                }
+            }
+            setCloudBadge('ok', '☁️ Синхронизировано ✓');
+            msgBox.innerHTML = `✅ Данные успешно загружены из облака! Gist ID: <code>${cloudCfg.gistId}</code>`;
+        } catch (err) {
+            setCloudBadge('err', '☁️ Ошибка связи');
+            if (manualAlert) msgBox.innerHTML = `<span style="color:var(--red);">❌ Ошибка загрузки: ${err.message}</span>`;
+        }
+    }
+
+    async function pushToCloud(manualAlert = false) {
+        if (!cloudCfg.token || !cloudCfg.gistId) return;
+        const msgBox = document.getElementById('cloud-status-msg');
+        setCloudBadge('syncing', '☁️ Сохранение...');
+
+        try {
+            const resp = await fetch(`https://api.github.com/gists/${cloudCfg.gistId}`, {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${cloudCfg.token}`,
+                    "Accept": "application/vnd.github+json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    files: {
+                        "prime_os_sync.json": {
+                            content: JSON.stringify(state, null, 2)
+                        }
+                    }
+                })
+            });
+            if (!resp.ok) throw new Error("Не удалось записать в Gist");
+            setCloudBadge('ok', '☁️ Синхронизировано ✓');
+            if (manualAlert) {
+                msgBox.innerHTML = `✅ Все данные отправлены в облако! (${new Date().toLocaleTimeString()})`;
+            }
+        } catch (err) {
+            setCloudBadge('err', '☁️ Ошибка сохранения');
+            if (manualAlert) msgBox.innerHTML = `<span style="color:var(--red);">❌ Ошибка отправки: ${err.message}</span>`;
+        }
+    }
+
+    function disconnectCloud() {
+        cloudCfg = { token: "", gistId: "" };
+        localStorage.removeItem(CLOUD_CFG_KEY);
+        document.getElementById('gh-token-input').value = '';
+        document.getElementById('gh-gist-input').value = '';
+        document.getElementById('cloud-status-msg').textContent = "Облако отключено. Данные сохраняются только на этом устройстве.";
+        updateCloudBadgeUI();
+    }
+
+    // Автоматически подтягиваем свежие данные при возвращении во вкладку / открытии приложения
+    window.addEventListener('focus', () => {
+        if (cloudCfg.token && cloudCfg.gistId) {
+            pullFromCloud(false);
+        }
+    });
+
+    function ensureDay(dateStr) {
+        if (!state.days[dateStr]) {
+            state.days[dateStr] = {
+                habitsDone: {},
+                todos: [],
+                subjectMinutes: {},
+                metrics: {}
+            };
+        }
+        const d = state.days[dateStr];
+        if (!d.habitsDone) d.habitsDone = {};
+        if (!d.todos) d.todos = [];
+        if (!d.subjectMinutes) d.subjectMinutes = {};
+        if (!d.metrics) d.metrics = {};
+        return d;
+    }
+
+    // Navigation
+    function switchTab(tabName, btnEl) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('view-' + tabName).classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+        renderAll();
+    }
+
+    function shiftDate(deltaDays) {
+        const parts = activeDate.split('-').map(Number);
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        d.setDate(d.getDate() + deltaDays);
+        activeDate = formatISO(d);
+        document.getElementById('active-date-input').value = activeDate;
+        renderAll();
+    }
+
+    function goToToday() {
+        activeDate = getTodayISO();
+        document.getElementById('active-date-input').value = activeDate;
+        renderAll();
+    }
+
+    // Stopwatch & Time Logging
+    function formatHMS(totalSec) {
+        const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+        const s = String(totalSec % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function getCurrentSwSeconds() {
+        if (!swRunning || !swStartTimestamp) return swElapsedSeconds;
+        const diff = Math.floor((Date.now() - swStartTimestamp) / 1000);
+        return swElapsedSeconds + Math.max(0, diff);
+    }
+
+    function updateStopwatchUI() {
+        const sec = getCurrentSwSeconds();
+        const disp = document.getElementById('stopwatch-display');
+        disp.textContent = formatHMS(sec);
+        if (swRunning) disp.classList.add('running');
+        else disp.classList.remove('running');
+    }
+
+    function toggleStopwatch() {
+        const btn = document.getElementById('sw-toggle-btn');
+        const status = document.getElementById('timer-status-lbl');
+        if (!swRunning) {
+            swRunning = true;
+            swStartTimestamp = Date.now();
+            btn.textContent = "⏸ Пауза";
+            status.textContent = "Идет запись времени... Нажми «Засчитать в день», чтобы сохранить";
+            swInterval = setInterval(updateStopwatchUI, 1000);
+        } else {
+            swElapsedSeconds = getCurrentSwSeconds();
+            swRunning = false;
+            swStartTimestamp = null;
+            clearInterval(swInterval);
+            btn.textContent = "▶ Продолжить";
+            status.textContent = "На паузе • Нажми «Засчитать в день», чтобы прибавить время";
+            updateStopwatchUI();
+        }
+    }
+
+    function resetStopwatch() {
+        swRunning = false;
+        swStartTimestamp = null;
+        swElapsedSeconds = 0;
+        if (swInterval) clearInterval(swInterval);
+        document.getElementById('sw-toggle-btn').textContent = "▶ Старт";
+        document.getElementById('timer-status-lbl').textContent = "Секундомер сброшен";
+        updateStopwatchUI();
+    }
+
+    function commitStopwatchSession() {
+        const totalSec = getCurrentSwSeconds();
+        const minsToAdd = Math.max(1, Math.round(totalSec / 60));
+        if (totalSec < 15) {
+            alert("Секундомер работал меньше 15 секунд. Запусти его или введи минуты вручную ниже.");
+            return;
+        }
+        const subId = document.getElementById('timer-subject-select').value;
+        const dayObj = ensureDay(activeDate);
+        dayObj.subjectMinutes[subId] = (dayObj.subjectMinutes[subId] || 0) + minsToAdd;
+        resetStopwatch();
+        document.getElementById('timer-status-lbl').textContent = `✓ Добавлено +${minsToAdd} мин в зачет дня!`;
+        saveState();
+    }
+
+    function applyManualMinutes() {
+        const inp = document.getElementById('manual-minutes-input');
+        const val = parseInt(inp.value, 10);
+        if (isNaN(val) || val < 0) return;
+        const subId = document.getElementById('timer-subject-select').value;
+        const dayObj = ensureDay(activeDate);
+        dayObj.subjectMinutes[subId] = val;
+        inp.value = '';
+        document.getElementById('timer-status-lbl').textContent = `✓ Время за день установлено на ${val} мин.`;
+        saveState();
+    }
+
+    function onSubjectChange() {
+        renderStopwatchContext();
+    }
+
+    function renderStopwatchContext() {
+        const sel = document.getElementById('timer-subject-select');
+        const currentVal = sel.value || (state.subjects[0] && state.subjects[0].id);
+        sel.innerHTML = '';
+        state.subjects.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name;
+            if (s.id === currentVal) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        const activeSubId = sel.value;
+        const dayObj = ensureDay(activeDate);
+        const mins = dayObj.subjectMinutes[activeSubId] || 0;
+        const hrs = (mins / 60).toFixed(1);
+        document.getElementById('logged-time-Readout').textContent = `${mins} мин (${hrs} ч)`;
+        document.getElementById('manual-minutes-input').placeholder = String(mins);
+
+        const summaryWrap = document.getElementById('daily-subjects-summary');
+        summaryWrap.innerHTML = '';
+        state.subjects.forEach(s => {
+            const m = dayObj.subjectMinutes[s.id] || 0;
+            const pill = document.createElement('span');
+            pill.className = 'item-tag';
+            pill.style.cursor = 'pointer';
+            if (m > 0) {
+                pill.style.borderColor = 'var(--accent)';
+                pill.style.color = 'var(--text-primary)';
+            }
+            pill.textContent = `${s.name}: ${m} мин (${(m/60).toFixed(1)} ч)`;
+            pill.onclick = () => {
+                sel.value = s.id;
+                renderStopwatchContext();
+            };
+            summaryWrap.appendChild(pill);
+        });
+    }
+
+    // Daily To-Dos
+    function addDailyTodo() {
+        const inp = document.getElementById('new-todo-input');
+        const text = inp.value.trim();
+        if (!text) return;
+        const dayObj = ensureDay(activeDate);
+        dayObj.todos.push({ id: 'td_' + Date.now(), text, done: false });
+        inp.value = '';
+        saveState();
+    }
+
+    function toggleDailyTodo(id) {
+        const dayObj = ensureDay(activeDate);
+        const item = dayObj.todos.find(t => t.id === id);
+        if (item) item.done = !item.done;
+        saveState();
+    }
+
+    function deleteDailyTodo(e, id) {
+        e.stopPropagation();
+        const dayObj = ensureDay(activeDate);
+        dayObj.todos = dayObj.todos.filter(t => t.id !== id);
+        saveState();
+    }
+
+    // Habits & Anti-Habits
+    function toggleHabitDone(habitId) {
+        const dayObj = ensureDay(activeDate);
+        dayObj.habitsDone[habitId] = !dayObj.habitsDone[habitId];
+        saveState();
+    }
+
+    function quickAddHabit(type) {
+        const inpId = type === 'positive' ? 'quick-habit-input' : 'quick-anti-input';
+        const inp = document.getElementById(inpId);
+        const title = inp.value.trim();
+        if (!title) return;
+        state.habits.push({
+            id: 'hb_' + Date.now(),
+            title,
+            type
+        });
+        inp.value = '';
+        saveState();
+    }
+
+    function deleteHabit(e, id) {
+        e.stopPropagation();
+        state.habits = state.habits.filter(h => h.id !== id);
+        saveState();
+    }
+
+    // Metrics
+    function changeMetricVal(metricId, delta) {
+        const dayObj = ensureDay(activeDate);
+        const cur = dayObj.metrics[metricId] || 0;
+        dayObj.metrics[metricId] = Math.max(0, cur + delta);
+        saveState();
+    }
+
+    // SOS
+    function toggleSosBanner() {
+        document.getElementById('sos-banner').classList.toggle('show');
+    }
+
+    function completeSosPushups() {
+        changeMetricVal('m_pushups', 25);
+        document.getElementById('sos-banner').classList.remove('show');
+    }
+
+    // Parking
+    function addParking() {
+        const inp = document.getElementById('parking-input');
+        const text = inp.value.trim();
+        if (!text) return;
+        state.parking.push({ id: 'pk_' + Date.now(), text });
+        inp.value = '';
+        saveState();
+    }
+
+    function deleteParking(id) {
+        state.parking = state.parking.filter(p => p.id !== id);
+        saveState();
+    }
+
+    // Stats Calculations
+    function getDayCompletion(dateStr) {
+        const dayObj = state.days[dateStr];
+        const totalHabits = state.habits.length;
+        if (!dayObj) {
+            return { done: 0, total: totalHabits, pct: 0, totalMinutes: 0, isClean: false };
+        }
+
+        let doneHabits = 0;
+        state.habits.forEach(h => {
+            if (dayObj.habitsDone && dayObj.habitsDone[h.id]) doneHabits++;
+        });
+
+        const todos = dayObj.todos || [];
+        const doneTodos = todos.filter(t => t.done).length;
+
+        const total = totalHabits + todos.length;
+        const done = doneHabits + doneTodos;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+        let totalMinutes = 0;
+        if (dayObj.subjectMinutes) {
+            Object.values(dayObj.subjectMinutes).forEach(m => { totalMinutes += (Number(m) || 0); });
+        }
+
+        const cleanHabit = state.habits.find(h => h.isCoreClean) || state.habits.find(h => h.type === 'anti');
+        const isClean = cleanHabit ? !!(dayObj.habitsDone && dayObj.habitsDone[cleanHabit.id]) : false;
+
+        return { done, total, pct, totalMinutes, isClean };
+    }
+
+    function calcStreaksAndTotals() {
+        let activeStreak = 0;
+        let cleanStreak = 0;
+        const d1 = new Date();
+        for (let i = 0; i < 1000; i++) {
+            const iso = formatISO(d1);
+            const st = getDayCompletion(iso);
+            if (st.pct >= 60) activeStreak++;
+            else if (i > 0) break;
+            d1.setDate(d1.getDate() - 1);
+        }
+
+        const d2 = new Date();
+        for (let i = 0; i < 1000; i++) {
+            const iso = formatISO(d2);
+            const st = getDayCompletion(iso);
+            if (st.isClean) cleanStreak++;
+            else if (i > 0) break;
+            d2.setDate(d2.getDate() - 1);
+        }
+
+        let allDoneCount = 0;
+        let allMinutes = 0;
+        let allCleanDays = 0;
+        let allPrimeDays = 0;
+
+        Object.keys(state.days).forEach(iso => {
+            const st = getDayCompletion(iso);
+            allDoneCount += st.done;
+            allMinutes += st.totalMinutes;
+            if (st.isClean) allCleanDays++;
+            if (st.pct >= 80 && st.done > 0) allPrimeDays++;
+        });
+
+        return {
+            activeStreak,
+            cleanStreak,
+            allDoneCount,
+            allHours: (allMinutes / 60).toFixed(1),
+            allCleanDays,
+            allPrimeDays
+        };
+    }
+
+    // Render Today View
+    function renderTodayView() {
+        const dayObj = ensureDay(activeDate);
+        renderStopwatchContext();
+
+        const todoList = document.getElementById('daily-todo-list');
+        todoList.innerHTML = '';
+        const doneTodosCount = dayObj.todos.filter(t => t.done).length;
+        document.getElementById('todo-counter').textContent = `${doneTodosCount} / ${dayObj.todos.length}`;
+
+        if (dayObj.todos.length === 0) {
+            todoList.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); padding:6px 0;">Нет разовых задач на этот день. Добавь приоритеты ниже.</div>`;
+        } else {
+            dayObj.todos.forEach(t => {
+                const row = document.createElement('div');
+                row.className = 'item-row' + (t.done ? ' done' : '');
+                row.onclick = () => toggleDailyTodo(t.id);
+                row.innerHTML = `
+                    <div class="item-left">
+                        <div class="chk">${t.done ? '✓' : ''}</div>
+                        <span class="item-title">${escapeHtml(t.text)}</span>
+                    </div>
+                    <button class="icon-btn" onclick="deleteDailyTodo(event, '${t.id}')" title="Удалить задачу">✕</button>
+                `;
+                todoList.appendChild(row);
+            });
+        }
+
+        const posHabits = state.habits.filter(h => h.type !== 'anti');
+        const posContainer = document.getElementById('daily-habits-list');
+        posContainer.innerHTML = '';
+        posHabits.forEach(h => {
+            const isDone = !!dayObj.habitsDone[h.id];
+            const row = document.createElement('div');
+            row.className = 'item-row' + (isDone ? ' done' : '');
+            row.onclick = () => toggleHabitDone(h.id);
+            row.innerHTML = `
+                <div class="item-left">
+                    <div class="chk">${isDone ? '✓' : ''}</div>
+                    <span class="item-title">${escapeHtml(h.title)}</span>
+                </div>
+            `;
+            posContainer.appendChild(row);
+        });
+
+        const antiHabits = state.habits.filter(h => h.type === 'anti');
+        const antiContainer = document.getElementById('daily-anti-list');
+        antiContainer.innerHTML = '';
+        antiHabits.forEach(a => {
+            const isDone = !!dayObj.habitsDone[a.id];
+            const row = document.createElement('div');
+            row.className = 'item-row' + (isDone ? ' done' : '');
+            row.onclick = () => toggleHabitDone(a.id);
+            row.innerHTML = `
+                <div class="item-left">
+                    <div class="chk">${isDone ? '✓' : ''}</div>
+                    <span class="item-title">${escapeHtml(a.title)}</span>
+                </div>
+            `;
+            antiContainer.appendChild(row);
+        });
+
+        const st = getDayCompletion(activeDate);
+        document.getElementById('day-pct-badge').textContent = `${st.pct}% (${st.done}/${st.total})`;
+        document.getElementById('habits-prog-text').textContent = `${st.done} / ${st.total}`;
+        document.getElementById('habits-prog-fill').style.width = `${st.pct}%`;
+
+        const mGrid = document.getElementById('daily-metrics-grid');
+        mGrid.innerHTML = '';
+        state.metrics.forEach(m => {
+            const val = dayObj.metrics[m.id] || 0;
+            const box = document.createElement('div');
+            box.className = 'metric-card';
+            box.innerHTML = `
+                <div class="metric-top">
+                    <span class="metric-name">${escapeHtml(m.name)}</span>
+                </div>
+                <div class="metric-controls">
+                    <button class="step-btn" onclick="changeMetricVal('${m.id}', -${m.step})">-</button>
+                    <span class="metric-val">${val}</span>
+                    <button class="step-btn" onclick="changeMetricVal('${m.id}', ${m.step})">+</button>
+                </div>
+            `;
+            mGrid.appendChild(box);
+        });
+
+        const msList = document.getElementById('milestones-compact-list');
+        msList.innerHTML = '';
+        state.milestones.forEach(ms => {
+            const diffDays = Math.ceil((new Date(ms.date + 'T00:00:00') - new Date()) / 86400000);
+            const badgeText = ms.done ? 'Закрыто ✓' : (diffDays >= 0 ? `${diffDays} дн.` : 'Прошло');
+            const row = document.createElement('div');
+            row.className = 'item-row' + (ms.done ? ' done' : '');
+            row.onclick = () => { ms.done = !ms.done; saveState(); };
+            row.innerHTML = `
+                <div class="item-left">
+                    <div class="chk">${ms.done ? '✓' : ''}</div>
+                    <div>
+                        <span class="item-title">${escapeHtml(ms.title)}</span>
+                        <span class="item-sub">Дата: ${ms.date}</span>
+                    </div>
+                </div>
+                <span class="item-tag">${badgeText}</span>
+            `;
+            msList.appendChild(row);
+        });
+
+        const pkList = document.getElementById('parking-list');
+        pkList.innerHTML = '';
+        state.parking.forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-left">
+                    <span class="item-title">${escapeHtml(p.text)}</span>
+                </div>
+                <button class="icon-btn" onclick="deleteParking('${p.id}')">✕</button>
+            `;
+            pkList.appendChild(row);
+        });
+    }
+
+    // Render All-Time Stats & Heatmap
+    function renderStatsView() {
+        const totals = calcStreaksAndTotals();
+        document.getElementById('st-total-completed').textContent = totals.allDoneCount;
+        document.getElementById('st-total-hours').textContent = `${totals.allHours} ч`;
+        document.getElementById('st-total-clean').textContent = `${totals.allCleanDays} дн.`;
+        document.getElementById('st-prime-days').textContent = `${totals.allPrimeDays} дн.`;
+
+        const ySel = document.getElementById('heatmap-year-select');
+        const curY = new Date().getFullYear();
+        const years = [curY, curY + 1, curY - 1];
+        if (!ySel.options.length) {
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = `${y} год`;
+                if (y === statsYear) opt.selected = true;
+                ySel.appendChild(opt);
+            });
+        }
+        renderYearHeatmap();
+        renderStatsMonthlyCal();
+        renderSubjectsBreakdown();
+    }
+
+    function renderYearHeatmap() {
+        const year = parseInt(document.getElementById('heatmap-year-select').value || statsYear, 10);
+        statsYear = year;
+        const grid = document.getElementById('year-heatmap-grid');
+        grid.innerHTML = '';
+
+        const startDate = new Date(year, 0, 1);
+        const endDate = new Date(year, 11, 31);
+
+        const firstDayOfWeek = (startDate.getDay() + 6) % 7;
+        for (let i = 0; i < firstDayOfWeek; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'hm-cell';
+            empty.style.visibility = 'hidden';
+            grid.appendChild(empty);
+        }
+
+        const cur = new Date(startDate);
+        while (cur <= endDate) {
+            const iso = formatISO(cur);
+            const st = getDayCompletion(iso);
+
+            let lvl = 'hm-l0';
+            if (st.done > 0) {
+                if (st.pct < 35) lvl = 'hm-l1';
+                else if (st.pct < 65) lvl = 'hm-l2';
+                else if (st.pct < 85) lvl = 'hm-l3';
+                else lvl = 'hm-l4';
+            }
+
+            const cell = document.createElement('div');
+            cell.className = `hm-cell ${lvl}`;
+            cell.title = `${iso}: выполнено ${st.done}/${st.total} (${st.pct}%), фокус: ${st.totalMinutes} мин`;
+            cell.onclick = () => {
+                activeDate = iso;
+                document.getElementById('active-date-input').value = activeDate;
+                switchTab('today', document.querySelectorAll('.tab-btn')[0]);
+            };
+            grid.appendChild(cell);
+            cur.setDate(cur.getDate() + 1);
+        }
+    }
+
+    function shiftStatsMonth(delta) {
+        statsMonth += delta;
+        if (statsMonth > 11) { statsMonth = 0; statsYear++; }
+        if (statsMonth < 0) { statsMonth = 11; statsYear--; }
+        renderStatsMonthlyCal();
+    }
+
+    function renderStatsMonthlyCal() {
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        document.getElementById('stats-month-title').textContent = `${monthNames[statsMonth]} ${statsYear}`;
+
+        const grid = document.getElementById('stats-month-grid');
+        grid.innerHTML = '';
+
+        const daysInMonth = new Date(statsYear, statsMonth + 1, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+            const iso = formatISO(new Date(statsYear, statsMonth, d));
+            const st = getDayCompletion(iso);
+            const cell = document.createElement('div');
+            cell.className = 'm-cell' + (iso === activeDate ? ' active-day' : '');
+            if (st.pct >= 80 && st.done > 0) {
+                cell.style.background = 'rgba(16, 185, 129, 0.18)';
+                cell.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+            } else if (st.done > 0) {
+                cell.style.background = 'rgba(59, 130, 246, 0.14)';
+                cell.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+            }
+            cell.innerHTML = `
+                <div style="font-weight:700;">${d} ${st.isClean ? '🛡️' : ''}</div>
+                <div style="font-size:0.68rem; color:var(--text-secondary);">${st.pct}% • ${st.totalMinutes}м</div>
+            `;
+            cell.onclick = () => {
+                activeDate = iso;
+                document.getElementById('active-date-input').value = activeDate;
+                switchTab('today', document.querySelectorAll('.tab-btn')[0]);
+            };
+            grid.appendChild(cell);
+        }
+    }
+
+    function renderSubjectsBreakdown() {
+        const container = document.getElementById('alltime-subjects-breakdown');
+        container.innerHTML = '';
+
+        state.subjects.forEach(s => {
+            let sumMins = 0;
+            Object.values(state.days).forEach(d => {
+                if (d.subjectMinutes && d.subjectMinutes[s.id]) {
+                    sumMins += Number(d.subjectMinutes[s.id]) || 0;
+                }
+            });
+            const hrs = (sumMins / 60).toFixed(1);
+            const target = s.targetHours || 100;
+            const pct = Math.min(100, Math.round(((sumMins / 60) / target) * 100));
+
+            const wrap = document.createElement('div');
+            wrap.style.marginBottom = '12px';
+            wrap.innerHTML = `
+                <div class="prog-head">
+                    <span style="color:var(--text-primary); font-weight:600;">${escapeHtml(s.name)}</span>
+                    <span>${hrs} / ${target} ч (${pct}%)</span>
+                </div>
+                <div class="prog-track">
+                    <div class="prog-fill" style="width:${pct}%; background:var(--accent);"></div>
+                </div>
+            `;
+            container.appendChild(wrap);
+        });
+    }
+
+    // Settings View Constructors
+    function renderSettingsView() {
+        const hList = document.getElementById('settings-habits-list');
+        hList.innerHTML = '';
+        state.habits.forEach(h => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-left">
+                    <span class="item-tag">${h.type === 'anti' ? '🛡️ Анти' : '⚡ База'}</span>
+                    <span class="item-title">${escapeHtml(h.title)}</span>
+                </div>
+                <button class="icon-btn" onclick="deleteHabit(event, '${h.id}')">✕</button>
+            `;
+            hList.appendChild(row);
+        });
+
+        const sList = document.getElementById('settings-subjects-list');
+        sList.innerHTML = '';
+        state.subjects.forEach(s => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-left">
+                    <span class="item-title">${escapeHtml(s.name)}</span>
+                    <span class="item-tag">Цель: ${s.targetHours} ч</span>
+                </div>
+                ${state.subjects.length > 1 ? `<button class="icon-btn" onclick="deleteSubject('${s.id}')">✕</button>` : ''}
+            `;
+            sList.appendChild(row);
+        });
+
+        const mList = document.getElementById('settings-metrics-list');
+        mList.innerHTML = '';
+        state.metrics.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-left">
+                    <span class="item-title">${escapeHtml(m.name)}</span>
+                    <span class="item-tag">Шаг: +${m.step}</span>
+                </div>
+                <button class="icon-btn" onclick="deleteMetric('${m.id}')">✕</button>
+            `;
+            mList.appendChild(row);
+        });
+
+        const msList = document.getElementById('settings-milestones-list');
+        msList.innerHTML = '';
+        state.milestones.forEach(ms => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-left">
+                    <span class="item-title">${escapeHtml(ms.title)}</span>
+                    <span class="item-tag">${ms.date}</span>
+                </div>
+                <button class="icon-btn" onclick="deleteMilestone('${ms.id}')">✕</button>
+            `;
+            msList.appendChild(row);
+        });
+    }
+
+    function addHabitFromSettings() {
+        const type = document.getElementById('new-habit-type').value;
+        const inp = document.getElementById('new-habit-title');
+        const title = inp.value.trim();
+        if (!title) return;
+        state.habits.push({ id: 'hb_' + Date.now(), title, type });
+        inp.value = '';
+        saveState();
+    }
+
+    function addSubjectFromSettings() {
+        const nameInp = document.getElementById('new-subject-name');
+        const goalInp = document.getElementById('new-subject-goal');
+        const name = nameInp.value.trim();
+        const targetHours = parseInt(goalInp.value, 10) || 100;
+        if (!name) return;
+        state.subjects.push({ id: 'sub_' + Date.now(), name, targetHours });
+        nameInp.value = '';
+        goalInp.value = '';
+        saveState();
+    }
+
+    function deleteSubject(id) {
+        if (state.subjects.length <= 1) return;
+        state.subjects = state.subjects.filter(s => s.id !== id);
+        saveState();
+    }
+
+    function addMetricFromSettings() {
+        const nameInp = document.getElementById('new-metric-name');
+        const stepInp = document.getElementById('new-metric-step');
+        const name = nameInp.value.trim();
+        const step = Math.max(1, parseInt(stepInp.value, 10) || 1);
+        if (!name) return;
+        state.metrics.push({ id: 'm_' + Date.now(), name, step });
+        nameInp.value = '';
+        saveState();
+    }
+
+    function deleteMetric(id) {
+        state.metrics = state.metrics.filter(m => m.id !== id);
+        saveState();
+    }
+
+    function addMilestoneFromSettings() {
+        const titleInp = document.getElementById('new-ms-title');
+        const dateInp = document.getElementById('new-ms-date');
+        const title = titleInp.value.trim();
+        const date = dateInp.value || getTodayISO();
+        if (!title) return;
+        state.milestones.push({ id: 'ms_' + Date.now(), title, date, done: false });
+        titleInp.value = '';
+        saveState();
+    }
+
+    function deleteMilestone(id) {
+        state.milestones = state.milestones.filter(m => m.id !== id);
+        saveState();
+    }
+
+    // Backup Export & Import
+    function exportBackup() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+        const a = document.createElement('a');
+        a.setAttribute("href", dataStr);
+        a.setAttribute("download", `prime_os_backup_${getTodayISO()}.json`);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    function importBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (imported && imported.days) {
+                    state = imported;
+                    saveState();
+                    alert("Бэкап успешно загружен!");
+                }
+            } catch (err) {
+                alert("Ошибка чтения файла бэкапа.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, function(m) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+        });
+    }
+
+    function renderAll() {
+        const totals = calcStreaksAndTotals();
+        document.getElementById('top-clean-streak').textContent = `${totals.cleanStreak} 🛡️`;
+        document.getElementById('top-active-streak').textContent = `${totals.activeStreak} 🔥`;
+        document.getElementById('top-total-hours').textContent = `${totals.allHours} ч`;
+
+        renderTodayView();
+        renderStatsView();
+        renderSettingsView();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        const dateInput = document.getElementById('active-date-input');
+        dateInput.value = activeDate;
+        dateInput.addEventListener('change', (e) => {
+            if (e.target.value) {
+                activeDate = e.target.value;
+                renderAll();
+            }
+        });
+        renderAll();
+        // Если облако уже настроено — сразу при старте подтягиваем свежую базу
+        if (cloudCfg.token && cloudCfg.gistId) {
+            pullFromCloud(false);
+        }
+    });
+</script>
+</body>
+</html>
